@@ -6,8 +6,16 @@ def reset_inputs():
     st.session_state.clear()
 
 def stage_1():
+    if "num_layers" not in st.session_state:
+        st.session_state.num_layers = 1
+    if "height" not in st.session_state:
+        st.session_state.height = 0.00
+
+    num_layers = st.session_state.num_layers
+    height = st.session_state.height
+
     # Step 1: Get the number of layers
-    num_layers = st.number_input("Enter the number of layers", min_value=1, step=1, key="num_layers")
+    num_layers = st.number_input("Enter the number of layers", value=num_layers, min_value=1, step=1, key="num_layers")
 
     # Step 2: Generate the dropdowns for material selection based on the number of layers
     if num_layers > 0:
