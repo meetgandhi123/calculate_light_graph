@@ -22,7 +22,7 @@ def stage_1():
         st.write(f"You selected {num_layers} layers.")
 
         selected_materials = []
-        material_choices = ["Material A", "Material B", "Material C"]  # Example materials
+        material_choices = ["silver", "aluminum", "gold", "chromium", "copper", "germanium"]  # Example materials
 
         for i in range(num_layers):
             key = f"material_{i}"
@@ -39,10 +39,13 @@ def stage_1():
     if st.button("Calculate"):
         if "materials" in st.session_state:
             # Process the materials and get the dictionary
-            chart_data = process_layers(st.session_state["materials"], st.session_state["height"])
+            thickness = [0.7,0.9]
+            material = ["silver","chromium"]
+            chart_data = process_layers(material, thickness)
+            # chart_data = process_layers(st.session_state["materials"], st.session_state["height"])
             # Display the result
             st.write("Processed Data:")            
-            st.line_chart(chart_data)
+            st.pyplot(chart_data)
         else:
             st.warning("Please complete all inputs before calculating.")
 
