@@ -22,36 +22,49 @@ def stage_1():
         st.write(f"You selected {num_layers} layers.")
 
         selected_materials = []
+        selected_height = []
         material_choices = ["silver", "aluminum", "gold", "chromium", "copper", "germanium"]  # Example materials
 
         for i in range(num_layers):
-            key = f"material_{i}"
-            material = st.selectbox(f"Select material for layer {i+1}", material_choices, key=key)
-            selected_materials.append(material)
+            cols = st.columns(2)
+            
+            with cols[0]:
+                key = f"material_{i}"
+                material = st.selectbox(f"Select material for layer {i+1}", material_choices, key=key)
+                selected_materials.append(material)
+
+            with cols[1]:
+                key_h = f"material_height_{i}"
+                height = st.number_input(f"Enter the height for layer {i+1}", min_value=0.0, step=0.01, format="%.2f", key=key_h)
+                selected_height.append(height)
 
         # Store the selected materials in the session state
         st.session_state["materials"] = selected_materials
+        st.session_state["materials_height"] = selected_height
+    
 
-    # Step 3: Input for the height
-    height = st.number_input("Enter the height (in meters)", min_value=0.0, step=0.01, format="%.2f", key="height")
+    cols_button = st.columns([6, 1])
 
     # Calculate Button
-    if st.button("Calculate"):
-        if "materials" in st.session_state:
-            # Process the materials and get the dictionary
-            thickness = [0.7,0.9]
-            material = ["silver","chromium"]
-            chart_data = process_layers(material, thickness)
-            # chart_data = process_layers(st.session_state["materials"], st.session_state["height"])
-            # Display the result
-            st.write("Processed Data:")            
-            st.pyplot(chart_data)
-        else:
-            st.warning("Please complete all inputs before calculating.")
+    with cols_button[0]:
+        if st.button("Calculate"):
+            if "materials" in st.session_state and "materials_height" in st.session_state:
+                # Process the materials and get the dictionary
+                print(st.session_state["materials"], st.session_state["materials_height"])
+                thickness = [0.7,0.9] # materials_height
+                material = ["silver","chromium"] # materials
+                chart_data = process_layers(material, thickness)
+                # chart_data = process_layers(st.session_state["materials"], st.session_state["materials_height"])
+                # Display the result
+                st.write("Processed Data:")            
+                st.pyplot(chart_data)
+            else:
+                st.warning("Please complete all inputs before calculating.")
 
     # Reset Button
-    if st.button("Reset"):
-        reset_inputs()
+    with cols_button[1]:
+        if st.button("Reset"):
+            reset_inputs()
 
 # Run the function to display the form
 stage_1()
