@@ -1,4 +1,5 @@
 import streamlit as st
+from processor import process_line_chart
 from processor import process_layers  # Import the processing function
 
 def reset_inputs():
@@ -8,11 +9,11 @@ def reset_inputs():
 def stage_1():
     if "num_layers" not in st.session_state:
         st.session_state.num_layers = 1
-    if "height" not in st.session_state:
-        st.session_state.height = 0.00
+    if "material_height_0" not in st.session_state:
+        st.session_state.material_height_0 = 0.00
 
     num_layers = st.session_state.num_layers
-    height = st.session_state.height
+    #height = st.session_state.height
 
     # Step 1: Get the number of layers
     num_layers = st.number_input("Enter the number of layers", value=num_layers, min_value=1, step=1, key="num_layers")
@@ -51,9 +52,10 @@ def stage_1():
             if "materials" in st.session_state and "materials_height" in st.session_state:
                 # Process the materials and get the dictionary
                 print(st.session_state["materials"], st.session_state["materials_height"])
-                thickness = [0.7,0.9] # materials_height
-                material = ["silver","chromium"] # materials
-                chart_data = process_layers(material, thickness)
+                # thickness = [0.7,0.9] # materials_height
+                # material = ["silver","chromium"] # materials
+                chart_data = process_line_chart(st.session_state["materials"],st.session_state["materials_height"]) #gives line_chart
+                # chart_data = process_layers(material, thickness) #give countour
                 # chart_data = process_layers(st.session_state["materials"], st.session_state["materials_height"])
                 # Display the result
                 st.write("Processed Data:")            
