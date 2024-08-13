@@ -11,10 +11,15 @@ warnings.filterwarnings("ignore")
 
 materials_data = {"silver":None,
                   "aluminum":None,
+                  "aluminum dioxide":None,
                   "gold":None,
                   "chromium":None,
                   "copper":None,
-                  "germanium":None}
+                  "germanium":None,
+                  "silicon":None,
+                  "silicon dioxide":None,
+                  "titanium":None,
+                  "titanium dioxide":None,}
 
 def get_data_for_material(materials):
     for material in materials:
@@ -42,13 +47,17 @@ def process_layers_for_thickness(materials,thickness,lambda_range):
     # generate_chart()
     get_data_for_material(materials)
     matrix_list = []
-    reflectance = []#np.empty(len(lambda_range))
+    reflectance = []
     number_layers = len(materials)
     for lambda_ in lambda_range:
         for layer in range(0,number_layers): #6
             if layer == 0: #air
                 D = get_layer_calculation(air_n, air_k)
                 matrix_list.append(np.linalg.inv(D))
+            elif layer != (number_layers-1): #last layer
+                n,k = get_n_k_from_material(materials[layer],lambda_)
+                D = get_layer_calculation(n, k)
+                matrix_list.append(D)
             elif layer != (number_layers): #layer1
                 n,k = get_n_k_from_material(materials[layer],lambda_)
                 D = get_layer_calculation(n, k)
@@ -56,7 +65,7 @@ def process_layers_for_thickness(materials,thickness,lambda_range):
                 matrix_list.append(D)
                 matrix_list.append(P)
                 matrix_list.append(np.linalg.inv(D))
-        M = calculate_dot(matrix_list).tolist()
+        M = calculate_dot(matrix_list[:-2]).tolist()
         r = M[1][0]/M[0][0]
         r_star = np.conjugate(r)
         R = r*r_star
@@ -96,14 +105,14 @@ def calculate_dot(matrix_list):
     Z = np.empty([2,2])
     for i in range(len(matrix_list)):
         if (i==0 & len(matrix_list)>1):
-            Z = np.matmul(matrix_list[i],matrix_list[i+1]) # 0,1
+            Z = np.dot(matrix_list[i],matrix_list[i+1]) # 0,1
         elif (i==1):
             if (len(matrix_list)==2): 
                 return Z
             else:
                 continue
         elif (i>=2):
-            Z = np.matmul(Z, matrix_list[i])
+            Z = np.dot(Z, matrix_list[i])
     return Z
 
 def get_layer_calculation(n,k):
@@ -114,8 +123,8 @@ def get_layer_calculation(n,k):
 def get_inter_layer_calculation(n,k,t,lambda_):
     phi = calculate_phi(n,k,t,lambda_)
     val = 1j*phi
-    D = [[cmath.exp(val), 0],[0, cmath.exp(-val)]]
-    return np.matrix(D,dtype=np.complex128)
+    P = [[cmath.exp(val), 0],[0, cmath.exp(-val)]]
+    return np.matrix(P,dtype=np.complex128)
 
 def generate_chart(lambda_list, thickness_list, reflectance):
     fig1 = plt.figure()

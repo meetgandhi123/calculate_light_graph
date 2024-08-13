@@ -24,7 +24,7 @@ def stage_1():
 
         selected_materials = []
         selected_height = []
-        material_choices = ["silver", "aluminum", "gold", "chromium", "copper", "germanium"]  # Example materials
+        material_choices = ["silver", "aluminum","aluminum dioxide", "gold", "chromium", "copper", "germanium","silicon","silicon dioxide","titanium", "titanium dioxide"]  # Example materials
 
         for i in range(num_layers):
             cols = st.columns(2)
