@@ -32,8 +32,8 @@ def get_data_for_material(materials):
 def get_n_k_from_material(material,lambda_):
     df = materials_data[material]
     filtered_df = df[df["lambda"] == lambda_]
-    n = int(filtered_df["n"])
-    k = int(filtered_df["k"])
+    n = float(filtered_df["n"])
+    k = float(filtered_df["k"])
     return n,k
 
 def calculate_phi(layer_n,layer_k,layer_t,lambda_):
