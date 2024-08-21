@@ -37,7 +37,7 @@ def get_n_k_from_material(material,lambda_):
 
 def calculate_phi(layer_n,layer_k,layer_t,lambda_):
      k = 2*math.pi/lambda_
-     phi =  k * (layer_n - (1j*layer_k))*layer_t #confirm this equation
+     phi =  k * (layer_n - (1j*layer_k))*layer_t 
      return phi
 
 def process_layers_for_thickness(materials,thickness,lambda_range):
@@ -54,7 +54,7 @@ def process_layers_for_thickness(materials,thickness,lambda_range):
             if layer == 0: #air
                 D = get_layer_calculation(air_n, air_k)
                 matrix_list.append(np.linalg.inv(D))
-            elif layer != (number_layers-1): #last layer
+            elif layer == (number_layers-1): #last layer
                 n,k = get_n_k_from_material(materials[layer],lambda_)
                 D = get_layer_calculation(n, k)
                 matrix_list.append(D)
