@@ -23,10 +23,11 @@ materials_data = {"silver":None,
 
 def get_data_for_material(materials):
     for material in materials:
-        csv_file = materials_file[material]
-        df = pd.read_csv(csv_file,names=["lambda", "n", "k"])
-        df["lambda"]=df["lambda"].apply(lambda x:x*1000)
-        materials_data[material] = df
+        if(material!="air"):
+            csv_file = materials_file[material]
+            df = pd.read_csv(csv_file,names=["lambda", "n", "k"])
+            df["lambda"]=df["lambda"].apply(lambda x:x*1000)
+            materials_data[material] = df
 
 def get_n_k_from_material(material,lambda_):
     df = materials_data[material]
@@ -54,22 +55,29 @@ def process_layers_for_thickness(materials,thickness,lambda_range):
             if layer == 0: #air
                 D = get_layer_calculation(air_n, air_k)
                 matrix_list.append(np.linalg.inv(D))
+                # print("D"+str(layer)+"inv")
             elif layer == (number_layers-1): #last layer
                 n,k = get_n_k_from_material(materials[layer],lambda_)
                 D = get_layer_calculation(n, k)
                 matrix_list.append(D)
+                # print("D"+str(layer))
             elif layer != (number_layers): #layer1
                 n,k = get_n_k_from_material(materials[layer],lambda_)
                 D = get_layer_calculation(n, k)
                 P = get_inter_layer_calculation(n,k,thickness[layer],lambda_)
                 matrix_list.append(D)
+                # print("D"+str(layer))
                 matrix_list.append(P)
+                # print("P"+str(layer))
                 matrix_list.append(np.linalg.inv(D))
+                # print("D"+str(layer)+"inv")
         M = calculate_dot(matrix_list[:-2]).tolist()
         r = M[1][0]/M[0][0]
         r_star = np.conjugate(r)
         R = r*r_star
         reflectance.append(R)
+        # print(R)
+        # break
     return reflectance        
 
 def validate(materials,thickness):
@@ -78,14 +86,19 @@ def validate(materials,thickness):
     return materials_len == thickness_len
 
 def process_line_chart(materials,thickness):
+    #Added air as a layer to keep the layer 1 as actual material layer 1
+    materials.insert(0,"air")
+    thickness.insert(0,0) 
     if validate(materials,thickness) == False:
         raise Exception()
     lambda_range = range(min_lambda_,max_lambda_,lambda_step)
-    # reflectance = np.empty([max_thickness,max_lambda_])
     reflectance = process_layers_for_thickness(materials,thickness,lambda_range)
     return generate_line_chart(reflectance,lambda_range)
 
 def process_layers(materials,thickness):
+    #Added air as a layer to keep the layer 1 as actual material layer 1
+    materials.insert(0,"air")
+    thickness.insert(0,0) 
     if validate(materials,thickness) == False:
         raise Exception()
 
