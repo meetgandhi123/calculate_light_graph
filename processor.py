@@ -114,18 +114,28 @@ def process_layers(materials,thickness):
         reflectance[thickness_i] = np.array(reflectance_list)
     return generate_chart(list(lambda_range),list(thickness_range),reflectance)
 
+# def calculate_dot(matrix_list):
+#     Z = np.empty([2,2])
+#     for i in range(len(matrix_list)):
+#         if (i==0 & len(matrix_list)>1):
+#             Z = np.dot(matrix_list[i],matrix_list[i+1]) # 0,1
+#         elif (i==1):
+#             if (len(matrix_list)==2): 
+#                 return Z
+#             else:
+#                 continue
+#         elif (i>=2):
+#             Z = np.dot(Z, matrix_list[i])
+#     return Z
+
 def calculate_dot(matrix_list):
-    Z = np.empty([2,2])
-    for i in range(len(matrix_list)):
-        if (i==0 & len(matrix_list)>1):
-            Z = np.dot(matrix_list[i],matrix_list[i+1]) # 0,1
-        elif (i==1):
-            if (len(matrix_list)==2): 
-                return Z
-            else:
-                continue
-        elif (i>=2):
-            Z = np.dot(Z, matrix_list[i])
+    # Initialize Z with the first matrix in the list
+    Z = matrix_list[0]
+    
+    # Multiply Z sequentially with the remaining matrices
+    for i in range(1, len(matrix_list)):
+        Z = np.dot(Z, matrix_list[i])
+    
     return Z
 
 def get_layer_calculation(n,k):
