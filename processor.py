@@ -8,6 +8,17 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
+def generate_random_graph(selected_materials,selected_height):
+    print(selected_materials,selected_height)
+    x = np.linspace(0, 10, 100)
+    y = np.sin(x) + np.random.normal(0, 0.1, 100)
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(x, y)
+    ax.set_title("Random Graph")
+    ax.set_xlabel("X-axis")
+    ax.set_ylabel("Y-axis")
+    return fig
 
 materials_data = {"silver":None,
                   "aluminum":None,
