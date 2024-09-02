@@ -89,14 +89,13 @@ def stage_2():
 def reset_app():
     # Reset session state values
     st.session_state.num_layers = 1
-    st.session_state.num_layers_input = 1
+    st.session_state.reset_flag = False
+    st.session_state.stage_1_complete = False  # Reset the completion flag for Stage 1
 
-    # Remove any dynamically created session state entries for materials and heights
+    # Remove any dynamically created session state entries for materials and thicknesses
     keys_to_remove = [key for key in st.session_state.keys() 
-                      if key.startswith('textbox_') or key.startswith('material_height_')]
+                      if key.startswith('material_') or key.startswith('thickness_')]
     for key in keys_to_remove:
         del st.session_state[key]
 
-    st.session_state.reset_flag = True  # Set the reset flag to True
-    # No need to rerun explicitly; Streamlit will handle it on the next interaction
-
+    # Streamlit will handle reruns on the next interaction
