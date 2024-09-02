@@ -1,178 +1,106 @@
-import pandas as pd
 import numpy as np
-import math
-import cmath
-from constants import *
+import pandas as pd
 import matplotlib.pyplot as plt
-
+import streamlit as st
 import warnings
 warnings.filterwarnings("ignore")
 
-def generate_random_graph(selected_materials,selected_height):
-    print(selected_materials,selected_height)
-    x = np.linspace(0, 10, 100)
-    y = np.sin(x) + np.random.normal(0, 0.1, 100)
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(x, y)
-    ax.set_title("Random Graph")
-    ax.set_xlabel("X-axis")
-    ax.set_ylabel("Y-axis")
-    return fig
+def generate_graph(lambda_vals, Reflectance):
+    fig, ax = plt.subplots(figsize=(15, 10))
 
-materials_data = {"silver":None,
-                  "aluminum":None,
-                  "aluminum dioxide":None,
-                  "gold":None,
-                  "chromium":None,
-                  "copper":None,
-                  "germanium":None,
-                  "silicon":None,
-                  "silicon dioxide":None,
-                  "titanium":None,
-                  "titanium dioxide":None,}
+    # Plot the data
+    ax.plot(lambda_vals, Reflectance)
 
-def get_data_for_material(materials):
-    for material in materials:
-        if(material!="air"):
-            csv_file = materials_file[material]
-            df = pd.read_csv(csv_file,names=["lambda", "n", "k"])
-            df["lambda"]=df["lambda"].apply(lambda x:x*1000)
-            materials_data[material] = df
+    # Set the limits and labels with increased font size
+    ax.set_xlim([0.4, 0.8])
+    ax.set_ylim([0, 1])
+    ax.set_xlabel('Wavelength (μm)', fontsize=24)  # Increase the font size
+    ax.set_ylabel('Reflectance', fontsize=24)      # Increase the font size
+    ax.set_title('Reflectance vs Wavelength', fontsize=20)  # Increase the font size
 
-def get_n_k_from_material(material,lambda_):
-    df = materials_data[material]
-    filtered_df = df[df["lambda"] == lambda_]
-    n = float(filtered_df["n"])
-    k = float(filtered_df["k"])
-    return n,k
+    # Use Streamlit's st.pyplot() and pass the figure directly
+    st.pyplot(fig)
 
-def calculate_phi(layer_n,layer_k,layer_t,lambda_):
-     k = 2*math.pi/lambda_
-     phi =  k * (layer_n - (1j*layer_k))*layer_t 
-     return phi
 
-def process_layers_for_thickness(materials,thickness,lambda_range):
-    # Convert the list of materials into a dictionary
-    # processed_dict = {f"layer{i+1}": material for i, material in enumerate(materials)}
-    # chart_data = pd.DataFrame(np.random.randn(20, 1), columns=["c"])
-    # generate_chart()
-    get_data_for_material(materials)
-    matrix_list = []
-    reflectance = []
-    number_layers = len(materials)
-    for lambda_ in lambda_range:
-        for layer in range(0,number_layers): #6
-            if layer == 0: #air
-                D = get_layer_calculation(air_n, air_k)
-                matrix_list.append(np.linalg.inv(D))
-                # print("D"+str(layer)+"inv")
-            elif layer == (number_layers-1): #last layer
-                n,k = get_n_k_from_material(materials[layer],lambda_)
-                D = get_layer_calculation(n, k)
-                matrix_list.append(D)
-                # print("D"+str(layer))
-            elif layer != (number_layers): #layer1
-                n,k = get_n_k_from_material(materials[layer],lambda_)
-                D = get_layer_calculation(n, k)
-                P = get_inter_layer_calculation(n,k,thickness[layer],lambda_)
-                matrix_list.append(D)
-                # print("D"+str(layer))
-                matrix_list.append(P)
-                # print("P"+str(layer))
-                matrix_list.append(np.linalg.inv(D))
-                # print("D"+str(layer)+"inv")
-        M = calculate_dot(matrix_list[:-2]).tolist()
-        r = M[1][0]/M[0][0]
-        r_star = np.conjugate(r)
-        R = r*r_star
-        reflectance.append(R)
-        # print(R)
-        # break
-    return reflectance        
 
-def validate(materials,thickness):
-    materials_len = len(materials)
-    thickness_len = len(thickness)
-    return materials_len == thickness_len
+materials_data = {"silver":"Ag",
+                  "aluminum":"Al",
+                  "aluminum dioxide":"Al2O3",
+                  "gold":"Au",
+                  "chromium":"Cr",
+                  "copper":"Cu",
+                  "germanium":"Ge",
+                  "silicon":"Si",
+                  "silicon dioxide":"SiO2",
+                  "titanium":"Ti",
+                  "titanium dioxide":"TiO2",}
 
-def process_line_chart(materials,thickness):
-    #Added air as a layer to keep the layer 1 as actual material layer 1
-    materials.insert(0,"air")
-    thickness.insert(0,0) 
-    if validate(materials,thickness) == False:
-        raise Exception()
-    lambda_range = range(min_lambda_,max_lambda_,lambda_step)
-    reflectance = process_layers_for_thickness(materials,thickness,lambda_range)
-    return generate_line_chart(reflectance,lambda_range)
+def calculate_graph(selected_materials,selected_height):
 
-def process_layers(materials,thickness):
-    #Added air as a layer to keep the layer 1 as actual material layer 1
-    materials.insert(0,"air")
-    thickness.insert(0,0) 
-    if validate(materials,thickness) == False:
-        raise Exception()
+    material_list = selected_materials
+    thickness_list = selected_height
 
-    ideal_metal_layer = 0
-    #ideal metal thickness range
-    thickness_range = range(min_thickness,max_thickness,thickness_step)
-    lambda_range = range(min_lambda_,max_lambda_,lambda_step)
-    reflectance = np.empty([len(thickness_range),len(lambda_range)])
+    def get_data(material):
+        material = materials_data[material]
+        file_name = f"data/{material} for sensitivity.csv"
+        return pd.read_csv(file_name).values
 
-    for thickness_i in thickness_range:
-        thickness.insert(ideal_metal_layer,thickness_i)
-        reflectance_list = process_layers_for_thickness(materials,thickness,lambda_range)
-        reflectance[thickness_i] = np.array(reflectance_list)
-    return generate_chart(list(lambda_range),list(thickness_range),reflectance)
+    def get_lambda_n_k(layer_n_data):
+        return layer_n_data[:, 0], layer_n_data[:, 1], layer_n_data[:, 2]
 
-# def calculate_dot(matrix_list):
-#     Z = np.empty([2,2])
-#     for i in range(len(matrix_list)):
-#         if (i==0 & len(matrix_list)>1):
-#             Z = np.dot(matrix_list[i],matrix_list[i+1]) # 0,1
-#         elif (i==1):
-#             if (len(matrix_list)==2): 
-#                 return Z
-#             else:
-#                 continue
-#         elif (i>=2):
-#             Z = np.dot(Z, matrix_list[i])
-#     return Z
+    def get_air_n_k(len_lambda):
+        return np.ones(len_lambda), np.zeros(len_lambda)
 
-def calculate_dot(matrix_list):
-    # Initialize Z with the first matrix in the list
-    Z = matrix_list[0]
-    
-    # Multiply Z sequentially with the remaining matrices
-    for i in range(1, len(matrix_list)):
-        Z = np.dot(Z, matrix_list[i])
-    
-    return Z
+    def calculate_D_and_P(n, k, thickness, lambda_vals):
+        """Calculate D and P matrices for a given layer."""
+        phi = (2 * np.pi / lambda_vals) * (n - 1j * k) * thickness
+        D = np.array([
+            [[1, 1],
+            [n[j] - 1j * k[j], -(n[j] - 1j * k[j])]]
+            for j in range(len(n))
+        ])
+        D_inv = np.linalg.inv(D)
+        P = np.array([
+            [[np.exp(1j * phi[j]), 0],
+            [0, np.exp(-1j * phi[j])]]
+            for j in range(len(phi))
+        ])
+        return D, D_inv, P
+        
 
-def get_layer_calculation(n,k):
-    val = n-(1j*k)
-    D = [[1,1],[val, -val]]
-    return np.matrix(D,dtype=np.complex128)
+    # Load initial data for the first material to get lambda values
+    lambda_vals, layer_1_n, layer_1_k = get_lambda_n_k(get_data(material_list[0]))
 
-def get_inter_layer_calculation(n,k,t,lambda_):
-    phi = calculate_phi(n,k,t,lambda_)
-    val = 1j*phi
-    P = [[cmath.exp(val), 0],[0, cmath.exp(-val)]]
-    return np.matrix(P,dtype=np.complex128)
+    # Get air n and k values
+    air_n, air_k = get_air_n_k(len(lambda_vals))
 
-def generate_chart(lambda_list, thickness_list, reflectance):
-    fig1 = plt.figure()
-    ax1 = fig1.add_subplot()
-    ax1.set_title('The output of st.pyplot()')
-    surf = ax1.contourf(np.array(lambda_list), np.array(thickness_list), np.array(reflectance), 200)
-    fig1.colorbar(surf)
-    return fig1
+    # Calculate D and P matrices for the air layer
+    D_air, D_air_inv, _ = calculate_D_and_P(air_n, air_k, 0, lambda_vals)  # No thickness for air
 
-def generate_line_chart(reflectance,lambda_range):
-    fig1 = plt.figure()
-    ax1 = fig1.add_subplot()
-    ax1.set_title('The output of st.pyplot()')
-    ax1.set_xlabel('Lambda')
-    ax1.set_ylabel('reflectance')
-    ax1.plot(list(lambda_range), reflectance)
-    return fig1
+    # Initialize M matrix as the identity matrix for the air
+    M_air = D_air_inv
+
+    # Iterate through each layer and compute matrices
+    for index, (material, thickness) in enumerate(zip(material_list, thickness_list)):
+        print("index: ",index)
+        print("material: ",material)
+        print("thickness: ",thickness)
+        layer_data = get_data(material)
+        lambda_vals, layer_n, layer_k = get_lambda_n_k(layer_data)
+        D, D_inv, P = calculate_D_and_P(layer_n, layer_k, thickness, lambda_vals)
+
+        # Update M matrix with the current layer matrices
+        if index == 0:             
+            M = D @ P @ D_inv
+        elif index == len(material_list) - 1:
+            M = M @ D
+        else:
+            M = M @ D @ P @ D_inv
+
+    M_final = M_air @ M
+
+    # Calculate reflectance
+    r = M_final[:, 1, 0] / M_final[:, 0, 0]
+    Reflectance = (r * np.conj(r)).real
+
+    generate_graph(lambda_vals, Reflectance)
